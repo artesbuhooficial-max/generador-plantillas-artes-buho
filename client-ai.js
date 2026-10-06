@@ -1,6 +1,6 @@
 // La clave de OpenAI nunca se solicita, almacena ni envía desde el navegador.
 let officeSession=null, currentBatch='initial';
-const initialVersions=versions.slice();
+const initialVersions=versions.filter(v=>['original','banda','cercano','jugueton','directo','produccion'].includes(v.id));
 async function api(route,body){
   const response=await fetch('./api/'+route,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,credentials:'same-origin'});
   const type=response.headers.get('content-type')||'';
@@ -13,7 +13,7 @@ $('tabAI').onclick=()=>show('ai');
 $('copyLink').onclick=async()=>{const link=new URL(location.href);if(currentBatch!=='initial')link.searchParams.set('batch',currentBatch);else link.searchParams.delete('batch');try{await navigator.clipboard.writeText(link.href);$('linkStatus').textContent='Enlace copiado. Puedes pegarlo en WhatsApp.';}catch{$('linkStatus').textContent=link.href;}};
 $('downloadApp').onclick=()=>{
   const articles=versions.map((v,i)=>`<article><h2>${i+1}. ${esc(v.name)}</h2><p><b>Intención:</b> ${esc(v.intent)}</p><p><b>Qué implica:</b> ${esc(v.implication)}</p><iframe title="${esc(v.name)}" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" srcdoc="${esc(v.html)}"></iframe></article>`).join('');
-  const resize="document.querySelectorAll('iframe').forEach(f=>f.onload=()=>{const d=f.contentDocument;const m=()=>f.style.height=Math.ceil(d.body.scrollHeight)+'px';m();new ResizeObserver(m).observe(d.body);});";
+  const resize="document.querySelectorAll('iframe').forEach(f=>f.onload=()=>{const d=f.contentDocument;const m=()=>f.style.height=Math.ceil(d.body.getBoundingClientRect().height)+'px';m();new ResizeObserver(m).observe(d.body);});";
   download(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Propuestas · Noches de Neón</title><style>body{margin:0;padding:20px;background:#eaf0f5;color:#0c2344;font-family:Arial}article{max-width:900px;margin:0 auto 35px;padding:20px;background:white;border-radius:24px}iframe{width:100%;border:0;height:1900px}p{line-height:1.5}</style></head><body><h1>Propuestas para revisar</h1>${articles}<script>${resize}<\/script></body></html>`,'propuestas-noches-de-neon.html');
 };
 function reviewsView(reviews){const box=$('teamReviews');box.replaceChildren();if(!reviews?.length)return;const title=document.createElement('h4');title.textContent='Opiniones de la oficina';box.append(title);for(const r of reviews){const p=document.createElement('p');const v=versions.find(v=>v.id===r.variantId);p.textContent=r.name+' · '+(v?.name||r.variantId)+(r.notes?' — '+r.notes:'');box.append(p);}}

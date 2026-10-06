@@ -4,6 +4,10 @@ import json
 root=Path(__file__).resolve().parent
 packed=json.loads((root/'source/seed.json').read_text(encoding='utf-8'))
 page=(root/'source/base.html').read_text(encoding='utf-8')
+page=page.replace('grid-template-columns:repeat(auto-fit,minmax(235px,1fr))','grid-template-columns:repeat(3,minmax(0,1fr))')
+page=page.replace('@media(max-width:990px){','@media(max-width:990px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}')
+page=page.replace('@media(max-width:580px){','@media(max-width:580px){.cards{grid-template-columns:1fr}')
+page=page.replace('Math.max(doc.documentElement.scrollHeight,doc.body.scrollHeight)','doc.body.getBoundingClientRect().height')
 page=page.replace('__PACKED__',json.dumps(packed,separators=(',',':')))
 page=page.replace('cinco','seis').replace('Cinco','Seis')
 page=page.replace("\n];\nconst decoder",",\n {id:'produccion',name:'Producción fácil',hook:'«Vosotros ponéis la fecha. Hablemos del resto»',intent:'Facilitar la organización y resolver la producción.',implication:'Encaja con equipos que necesitan concretar montaje, sonido y medios antes de reservar.'}\n];\nconst decoder",1)
