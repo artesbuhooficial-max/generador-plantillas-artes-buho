@@ -1,0 +1,19 @@
+<section id="aiPanel" class="hidden">
+  <div class="section-heading"><div><h2>Cuéntanos qué quieres proponer</h2><p>Texto, fotos, documentos o una nota de voz. El asistente prepara seis formas distintas de contarlo.</p></div></div>
+  <div class="panel" style="max-width:980px;margin:auto">
+    <p id="apiStatus" class="note" role="status">Comprobando el asistente…</p>
+    <form id="loginForm" class="hidden"><label class="field"><span>Contraseña de la oficina</span><input id="officePassword" type="password" autocomplete="current-password"></label><button class="btn-primary">Acceder</button></form>
+    <form id="aiForm">
+      <label class="field"><span>Información de la propuesta</span><textarea id="aiBrief" style="min-height:170px">Noches de Neón: banda de versiones y orquesta 100 % en directo. Hasta cuatro horas de repertorio. Ocho artistas: cuatro cantantes bailarines, piano, guitarra, bajo y batería. Músicos que han tocado con Antonio Orozco, Rozalén y La Pegatina. Sonido, iluminación y montaje o camión escenario opcionales. Podemos adaptarnos a los medios del evento. Queremos presentarnos a responsables de fiestas municipales para que nos cuenten fecha y lugar.</textarea></label>
+      <label class="field"><span>¿A quién va dirigido?</span><select id="aiAudience"><option value="municipal">Ayuntamientos y fiestas municipales</option><option value="empresa">Empresas</option><option value="bodas">Bodas</option><option value="mixto">Otros eventos</option></select></label>
+      <label class="field"><span>Carácter, saludo y cambios que quieres</span><textarea id="aiInstructions" placeholder="Ej.: humano, como si lo hubiera escrito personalmente; con saludo sencillo, atrevido sin exagerar. Quiero menos texto y dos vídeos."></textarea></label>
+      <label class="field"><span>Adjuntos de referencia</span><input type="file" id="aiFiles" multiple accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,.md,.docx,.pptx,.csv,.xlsx,.mp3,.mp4,.m4a,.wav,.webm"><small>Hasta 8 archivos, 12 MB por archivo y 16 MB en total. Las imágenes pueden elegirse como portada. El audio y los vídeos con voz se transcriben; no se analizan sus fotogramas.</small></label>
+      <p id="fileSummary" class="status"></p>
+      <p class="sub">Al generar, el texto y los adjuntos se envían a OpenAI con la cuenta API de Artes Búho. Cada tanda crea seis enfoques: visual, solvencia, cercano, juguetón, caso concreto y producción fácil. Después podéis revisar y elegir.</p>
+      <div class="button-row"><button id="generateSix" class="btn-primary" disabled>Generar las 6 plantillas</button><button id="logoutOffice" class="btn-secondary hidden" type="button">Cerrar sesión</button></div>
+    </form>
+    <p id="aiProgress" class="status" role="status" aria-live="polite"></p>
+    <div id="aiSummary" class="note hidden"></div>
+    <h3 style="margin-top:26px">Tandas guardadas en la oficina</h3><div id="batchList"><p class="status">Estarán disponibles al conectar el servidor.</p></div>
+  </div>
+</section>
