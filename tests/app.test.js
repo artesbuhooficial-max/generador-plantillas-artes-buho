@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import vm from 'node:vm';
 import {validateInput,validateResult,generateProposals} from '../ai.js';
 const dir=await fs.mkdtemp(path.join(os.tmpdir(),'ab-templates-test-'));
 process.env.DATA_DIR=dir;process.env.APP_ACCESS_PASSWORD='test-password-only';process.env.COOKIE_SECURE='false';delete process.env.OPENAI_API_KEY;
@@ -27,6 +28,23 @@ test('Los adjuntos y el número de propuestas se validan',()=>{
   assert.throws(()=>validateInput({brief:'',files:[]}));assert.throws(()=>validateInput({brief:'Hola',files:[{name:'script.exe',data:'YWJj'}]}));
   assert.throws(()=>validateInput({brief:'Hola',files:Array.from({length:9},()=>({name:'a.png',data:'YWJj'}))}));
   assert.throws(()=>validateResult({summary:'x',missing:[],templates:[]}));
+});
+test('Bella Bestia conserva vídeos y exige GPT 5.6 o superior',()=>{
+  const input=validateInput({campaign:'bella',brief:'Celebración de empresa',videos:[{url:'https://youtu.be/PQgfKgna6tI',label:'Conoce la sala'}]});
+  assert.equal(input.model,'gpt-5.6-sol');assert.equal(input.campaign,'bella');assert.equal(input.videos[0].id,'PQgfKgna6tI');
+  assert.throws(()=>validateInput({...input,model:'gpt-4.1'}));
+  assert.throws(()=>validateInput({...input,videos:[{url:'https://evil.example/?v=PQgfKgna6tI'}]}));
+});
+test('Los seis prototipos Bella enlazan los vídeos editados sin contenido de la banda',async()=>{
+  const source=await fs.readFile(new URL('../campaigns.js',import.meta.url),'utf8');
+  const fields={campaignVideo1:'https://youtu.be/PQgfKgna6tI',campaignLabel1:'Nuestra sala <hoy>',campaignVideo2:'https://www.youtube.com/watch?v=x8sKyjw4UBM',campaignLabel2:'Otra mirada'};
+  const escape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+  const context=vm.createContext({URL,Map,build:()=>'',F:id=>fields[id],esc:escape,text:escape});
+  vm.runInContext(source.slice(0,source.indexOf('function setCampaign')),context);
+  const variants=vm.runInContext('bellaPrototypes()',context);assert.equal(variants.length,6);
+  assert.equal(new Set(variants.map(v=>v.hook)).size,6);
+  for(const v of variants){assert.match(v.html,/PQgfKgna6tI/);assert.match(v.html,/x8sKyjw4UBM/);assert.match(v.html,/Nuestra sala &lt;hoy&gt;/);assert.match(v.html,/salabellabestia@gmail.com/);assert.doesNotMatch(v.html,/Noches de Neón|Carabanchel|Orozco|Arganzuela/);}
+  assert.match(vm.runInContext("videoTile({id:'PQgfKgna6tI',url:'https://youtu.be/PQgfKgna6tI',src:'data:image/jpeg;base64,YWJj',label:'Ver'})",context),/data:image\/jpeg;base64,YWJj/);
 });
 test('Una llamada lee imagen, PDF y audio y devuelve seis campos seguros',async()=>{
   const templates=Array.from({length:6},(_,i)=>Object.fromEntries(['name','subject','headline','greeting','opening','offer','proof','logistics','closing','cta','intent','implication'].map(k=>[k,k+String(i)]).concat([['structure','carta'],['heroImage',0]])));

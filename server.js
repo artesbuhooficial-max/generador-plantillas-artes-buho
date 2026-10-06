@@ -12,7 +12,16 @@ const keyFile=path.join(dataDir,'openai-private.json');
 let savedOpenAI={};
 try{savedOpenAI=JSON.parse(await fs.readFile(keyFile,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;}
 const apiKey=()=>savedOpenAI.key||process.env.OPENAI_API_KEY||'';
-const apiModel=()=>savedOpenAI.model||process.env.OPENAI_MODEL||'gpt-4.1';
+const apiModel=()=>savedOpenAI.model||process.env.OPENAI_MODEL||'gpt-5.6-sol';
+const thumbs=new Map();
+async function videoThumbnail(id){
+  if(!/^[A-Za-z0-9_-]{11}$/.test(id||''))throw new Error('Identificador de vídeo inválido.');
+  if(thumbs.has(id))return thumbs.get(id);
+  const r=await fetch('https://i.ytimg.com/vi/'+id+'/hqdefault.jpg',{signal:AbortSignal.timeout(15000)});
+  if(!r.ok||!r.headers.get('content-type')?.startsWith('image/'))throw new Error('No se pudo obtener la miniatura de este vídeo.');
+  const bytes=Buffer.from(await r.arrayBuffer());if(bytes.length>1024*1024)throw new Error('Miniatura demasiado grande.');
+  const src='data:image/jpeg;base64,'+bytes.toString('base64');if(thumbs.size>=100)thumbs.delete(thumbs.keys().next().value);thumbs.set(id,src);return src;
+}
 const sessions=new Map(), attempts=new Map();
 let busy=false;
 const secure=process.env.COOKIE_SECURE!=='false';
@@ -37,6 +46,7 @@ export const server=http.createServer(async(req,res)=>{
         if(!req.headers['content-type']?.startsWith('application/json'))return json(res,415,{error:'Se requiere JSON.'});
       }
       if(url.pathname==='/api/session' && req.method==='GET')return json(res,200,{authenticated:authorized(req),configured:!!process.env.APP_ACCESS_PASSWORD,aiReady:authorized(req)&&!!apiKey(),model:authorized(req)?apiModel():null});
+      if(url.pathname==='/api/video-thumbnail' && req.method==='GET')return json(res,200,{src:await videoThumbnail(url.searchParams.get('id'))});
       if(url.pathname==='/api/login' && req.method==='POST'){
         if(!process.env.APP_ACCESS_PASSWORD)return json(res,503,{error:'El servidor necesita APP_ACCESS_PASSWORD.'});
         const ip=req.socket.remoteAddress,now=Date.now();const attempt=attempts.get(ip)||{count:0,until:now+15*60*1000};
@@ -72,18 +82,19 @@ export const server=http.createServer(async(req,res)=>{
         const input=validateInput(await readBody(req));busy=true;
         try{
           store.usage[day]=used+1;await save();
-          const result=await generateProposals(input,{key:apiKey(),model:apiModel()});
-          const batch={id:crypto.randomUUID(),createdAt:new Date().toISOString(),...result,audience:input.audience,images:input.files.map((f,index)=>f.mime.startsWith('image/')?{index,name:f.name,src:`data:${f.mime};base64,${f.data}`}:null).filter(Boolean)};
+          const result=await generateProposals(input,{key:apiKey(),model:input.model});
+          const videos=await Promise.all(input.videos.map(async v=>({...v,src:await videoThumbnail(v.id).catch(()=>null)})));
+          const batch={id:crypto.randomUUID(),createdAt:new Date().toISOString(),...result,campaign:input.campaign,brief:input.brief,instructions:input.instructions,videos,model:input.model,audience:input.audience,images:input.files.map((f,index)=>f.mime.startsWith('image/')?{index,name:f.name,src:`data:${f.mime};base64,${f.data}`}:null).filter(Boolean)};
           store.batches.push(batch);await save();return json(res,200,batch);
         }finally{busy=false;}
       }
       const match=/^\/api\/batches\/([a-zA-Z0-9-]+)(\/reviews)?$/.exec(url.pathname);
       if(match){
         const id=match[1],batch=store.batches.find(b=>b.id===id);
-        if(id!=='initial'&&!batch)return json(res,404,{error:'No existe esta tanda.'});
+        if(!['initial','bella-prototype'].includes(id)&&!batch)return json(res,404,{error:'No existe esta tanda.'});
         if(req.method==='GET'&&!match[2])return json(res,200,{...batch,reviews:store.reviews.filter(r=>r.batchId===id)});
         if(req.method==='POST'&&match[2]){
-          const body=await readBody(req);const validIds=id==='initial'?['original','banda','cercano','jugueton','directo','produccion']:batch.templates.map((_,i)=>'ai-'+id+'-'+i);
+          const body=await readBody(req);const validIds=id==='initial'?['original','banda','cercano','jugueton','directo','produccion']:id==='bella-prototype'?Array.from({length:6},(_,i)=>'bella-'+i):batch.templates.map((_,i)=>'ai-'+id+'-'+i);
           if(!validIds.includes(body.variantId)||typeof body.name!=='string'||!body.name.trim()||body.name.length>80||typeof body.notes!=='string'||body.notes.length>3000)return json(res,400,{error:'Completa el nombre y elige una plantilla válida.'});
           const review={id:crypto.randomUUID(),batchId:id,variantId:body.variantId,name:body.name.trim(),notes:body.notes,createdAt:new Date().toISOString()};
           store.reviews.push(review);await save();return json(res,200,review);

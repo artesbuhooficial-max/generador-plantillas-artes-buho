@@ -1,6 +1,12 @@
 # Generador de plantillas HTML para mails · Artes Búho
 
-Aplicación de revisión y asistente multimodal para Noches de Neón.
+Aplicación de revisión y asistente multimodal para Sala Bella Bestia y Noches de Neón.
+
+**Aplicación con servidor:** https://plantillas.187.127.82.1.sslip.io/
+
+Bella Bestia dispone de seis prototipos editoriales: invitación personal, complicidad atrevida, catering, participación del equipo, prueba visual y coordinación. Los enlaces de YouTube y sus rótulos se editan antes de generar. Las miniaturas corresponden al ID del vídeo; no se deduce su contenido. Cada tanda conserva campaña, vídeos, imágenes y modelo.
+
+La generación usa GPT 5.6 Sol por defecto, con opciones GPT 6 Sol, GPT 6 Astra y GPT 6.1 Sol. No hay cambio automático a un modelo inferior; el acceso y saldo dependen de la cuenta API. Los prototipos iniciales son textos preparados para revisar, no resultados de una llamada de pago a GPT.
 
 ## Compartir con la oficina
 
@@ -43,7 +49,7 @@ Variables privadas **sólo de runtime**:
 | Variable | Uso |
 | --- | --- |
 | `OPENAI_API_KEY` | Clave de un proyecto API de Artes Búho |
-| `OPENAI_MODEL` | Modelo con visión y Structured Outputs; ejemplo `gpt-4.1` |
+| `OPENAI_MODEL` | Modelo con visión y Structured Outputs; por defecto `gpt-5.6-sol` |
 | `APP_ACCESS_PASSWORD` | Contraseña compartida con los revisores |
 | `COOKIE_SECURE` | `true` en producción HTTPS |
 | `DATA_DIR` | `/app/data` |
@@ -55,7 +61,7 @@ La app guarda las tandas, las imágenes seleccionables y opiniones en el volumen
 
 ## Código y verificación
 
-`server.js`: servidor y acceso. `ai.js`: API Responses, transcripción y esquema de seis propuestas. `client-ai.js`: formulario y revisión. `build.py`: recompila la aplicación desde `source/base.html`, `source/seed.json`, el panel y el cliente. Ejecutar `python build.py` después de editar esas fuentes. Las salidas están versionadas en `public` y `docs`; Docker no necesita Python ni archivos externos. `OPENAI_TRANSCRIBE_MODEL` permite configurar el modelo de transcripción (por defecto `gpt-transcribe`).
+`server.js`: servidor y acceso. `ai.js`: API Responses, transcripción y esquema de seis propuestas. `client-ai.js`: formulario y revisión. `build.py`: recompila la aplicación desde `source/base.html`, `source/seed.json`, el panel y los clientes `client-ai.js` y `campaigns.js`. Ejecutar `python build.py` después de editar esas fuentes. Las salidas están versionadas en `public` y `docs`; Docker no necesita Python ni archivos externos. `OPENAI_TRANSCRIBE_MODEL` permite configurar el modelo de transcripción (por defecto `gpt-transcribe`).
 
 `npm test` verifica acceso, límites de adjuntos, seis propuestas y peticiones multimodales con un proveedor simulado. No consume saldo de OpenAI. Una prueba real requiere la clave API; no se ha ejecutado mientras falta.
 

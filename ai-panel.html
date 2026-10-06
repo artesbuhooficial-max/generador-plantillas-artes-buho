@@ -8,18 +8,27 @@
       <p id="keyHelp" class="status">Primero conecta el servidor y accede con la contraseña de la oficina.</p>
       <form id="openaiKeyForm" autocomplete="off">
         <label class="field" style="margin-top:14px"><span>Clave API de GPT de Artes Búho</span><input id="openaiKey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false" disabled><small>Se envía a este servidor y a OpenAI para comprobar el acceso. No se añade al HTML ni se guarda en tu navegador.</small></label>
-        <label class="field"><span>Modelo GPT</span><input id="openaiModel" value="gpt-4.1" maxlength="100" spellcheck="false" disabled></label>
+        <label class="field"><span>Modelo para comprobar la clave</span><select id="openaiModel" disabled><option value="gpt-5.6-sol">GPT 5.6 Sol</option><option value="gpt-6-sol">GPT 6 Sol</option><option value="gpt-6-astra">GPT 6 Astra</option><option value="gpt-6.1-sol">GPT 6.1 Sol</option></select></label>
         <button id="saveOpenaiKey" class="btn-secondary" disabled>Guardar y comprobar conexión</button>
       </form>
       <p id="keyStatus" class="status" role="status" aria-live="polite"></p>
     </details>
     <form id="aiForm">
+      <label class="field"><span>Modelo para esta tanda · mínimo GPT 5.6</span><select id="generationModel"><option value="gpt-5.6-sol">GPT 5.6 Sol</option><option value="gpt-6-sol">GPT 6 Sol</option><option value="gpt-6-astra">GPT 6 Astra</option><option value="gpt-6.1-sol">GPT 6.1 Sol</option></select><small>Se usa exactamente el modelo elegido. Si tu cuenta no tiene acceso, se mostrará el error; no se sustituye por uno inferior.</small></label>
+      <details open style="margin-bottom:24px"><summary style="font-weight:bold;cursor:pointer">Vídeos de la campaña · enlaces y rótulos editables</summary>
+        <label class="field" style="margin-top:16px"><span>Enlace del vídeo 1</span><input id="campaignVideo1" type="url" placeholder="https://www.youtube.com/watch?v=…"></label>
+        <label class="field"><span>Rótulo del vídeo 1</span><input id="campaignLabel1" maxlength="140"></label>
+        <label class="field"><span>Enlace del vídeo 2</span><input id="campaignVideo2" type="url" placeholder="https://www.youtube.com/watch?v=…"></label>
+        <label class="field"><span>Rótulo del vídeo 2</span><input id="campaignLabel2" maxlength="140"></label>
+        <button id="updateVideoPreviews" type="button" class="btn-secondary">Actualizar miniaturas y prototipo</button><p id="videoStatus" class="status"></p>
+        <div id="campaignVideoPreviews" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px"></div>
+      </details>
       <label class="field"><span>Información de la propuesta</span><textarea id="aiBrief" style="min-height:170px">Noches de Neón: banda de versiones y orquesta 100 % en directo. Hasta cuatro horas de repertorio. Ocho artistas: cuatro cantantes bailarines, piano, guitarra, bajo y batería. Músicos que han tocado con Antonio Orozco, Rozalén y La Pegatina. Sonido, iluminación y montaje o camión escenario opcionales. Podemos adaptarnos a los medios del evento. Queremos presentarnos a responsables de fiestas municipales para que nos cuenten fecha y lugar.</textarea></label>
       <label class="field"><span>¿A quién va dirigido?</span><select id="aiAudience"><option value="municipal">Ayuntamientos y fiestas municipales</option><option value="empresa">Empresas</option><option value="bodas">Bodas</option><option value="mixto">Otros eventos</option></select></label>
       <label class="field"><span>Carácter, saludo y cambios que quieres</span><textarea id="aiInstructions" placeholder="Ej.: humano, como si lo hubiera escrito personalmente; con saludo sencillo, atrevido sin exagerar. Quiero menos texto y dos vídeos."></textarea></label>
       <label class="field"><span>Adjuntos de referencia</span><input type="file" id="aiFiles" multiple accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,.md,.docx,.pptx,.csv,.xlsx,.mp3,.mp4,.m4a,.wav,.webm"><small>Hasta 8 archivos, 12 MB por archivo y 16 MB en total. Las imágenes pueden elegirse como portada. El audio y los vídeos con voz se transcriben; no se analizan sus fotogramas.</small></label>
       <p id="fileSummary" class="status"></p>
-      <p class="sub">Al generar, el texto y los adjuntos se envían a OpenAI con la cuenta API de Artes Búho. Cada tanda crea seis enfoques: visual, solvencia, cercano, juguetón, caso concreto y producción fácil. Después podéis revisar y elegir.</p>
+      <p class="sub">Al generar, el texto y los adjuntos se envían a OpenAI con la cuenta API de Artes Búho. Cada tanda crea seis enfoques distintos para la campaña elegida. Los enlaces de vídeo aportan miniaturas y botones; no se analiza su contenido automáticamente.</p>
       <div class="button-row"><button id="generateSix" class="btn-primary" disabled>Generar las 6 plantillas</button><button id="logoutOffice" class="btn-secondary hidden" type="button">Cerrar sesión</button></div>
     </form>
     <p id="aiProgress" class="status" role="status" aria-live="polite"></p>

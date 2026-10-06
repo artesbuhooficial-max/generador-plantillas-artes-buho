@@ -18,14 +18,17 @@ page=page[:start]+'''    <div class="share-panel"><h2>Un enlace para decidir jun
 page=page.replace('<div class="feedback"><h3>','<div class="feedback"><h3>',1).replace('<textarea id="feedbackNotes"','<label class="field"><span>Tu nombre, para la revisión compartida</span><input id="reviewerName" maxlength="80" autocomplete="name"></label><textarea id="feedbackNotes"',1)
 page=page.replace('<button type="button" class="btn-primary" id="copyFeedback">','<button type="button" class="btn-primary" id="sendReview">Guardar opinión en la oficina</button><button type="button" class="btn-secondary" id="copyFeedback">',1)
 page=page.replace('<p class="status" id="feedbackStatus"></p>','<p class="status" id="feedbackStatus"></p><div id="teamReviews"></div>',1)
-page=page.replace('<main>','<main>\n'+(root/'ai-panel.html').read_text(encoding='utf-8'),1)
+page=page.replace('<main>','''<main><div class="share-panel"><label class="field"><span>Campaña que vamos a comparar</span><select id="campaignChoice"><option value="bella">Sala Bella Bestia · eventos de empresa</option><option value="neon">Noches de Neón · contratación de la banda</option></select></label><button id="showBellaPrototype" class="btn-secondary" type="button">Ver los 6 prototipos Bella Bestia</button><p id="campaignNote" class="status"></p></div>\n'''+(root/'ai-panel.html').read_text(encoding='utf-8'),1)
+page=page.replace('Artes Búho · Noches de Neón','Artes Búho · Campañas para revisar').replace('Seis enfoques para ayuntamientos','Seis enfoques para elegir en la oficina')
+page=page.replace('Generador de plantillas HTML para mails · Noches de Neón','Generador de plantillas HTML para mails · Artes Búho')
 page=page.replace("frame.setAttribute('scrolling','no');","frame.setAttribute('scrolling','no');frame.setAttribute('sandbox','allow-same-origin allow-popups allow-popups-to-escape-sandbox');",1)
 page=page.replace('assets[f.hero]||assets.festival','f.heroData||assets[f.hero]||assets.festival')
 head,tail=page.rsplit('</body>',1)
-page=head+'<script src="client-ai.js"></script>\n</body>'+tail
+page=head+'<script src="client-ai.js"></script><script src="campaigns.js"></script>\n</body>'+tail
 for folder in ['public','docs']:
     dest=root/folder;dest.mkdir(exist_ok=True)
     (dest/'index.html').write_text(page,encoding='utf-8')
     (dest/'client-ai.js').write_text((root/'client-ai.js').read_text(encoding='utf-8'),encoding='utf-8')
+    (dest/'campaigns.js').write_text((root/'campaigns.js').read_text(encoding='utf-8'),encoding='utf-8')
     (dest/'.nojekyll').write_text('')
 print('App empaquetada: seis propuestas; servidor y GitHub Pages.')

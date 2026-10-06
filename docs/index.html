@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Generador de plantillas HTML para mails · Noches de Neón</title>
+<title>Generador de plantillas HTML para mails · Artes Búho</title>
 <style>
   :root{--navy:#0c2344;--blue:#237ed0;--pink:#e976a2;--ink:#18304d;--muted:#58718b;--line:#d9e8f3;--bg:#f1f5f8;--white:#fff}
   *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.5}button,input,select,textarea{font:inherit}button{cursor:pointer}
@@ -18,8 +18,8 @@
 </style>
 </head>
 <body>
-<div class="top"><div class="top-inner"><div class="eyebrow">Artes Búho · Noches de Neón</div><h1>Generador de plantillas<br>HTML para mails</h1><p>Recorre las seis propuestas completas, elige tu favorita y crea otra versión si hace falta.</p><div class="tabs"><button id="tabCompare" class="active" type="button">Ver todas las plantillas</button><button id="tabAI" type="button">Asistente GPT · 6 propuestas</button><button id="tabBuild" type="button">Crear una nueva</button></div></div></div>
-<main>
+<div class="top"><div class="top-inner"><div class="eyebrow">Artes Búho · Campañas para revisar</div><h1>Generador de plantillas<br>HTML para mails</h1><p>Recorre las seis propuestas completas, elige tu favorita y crea otra versión si hace falta.</p><div class="tabs"><button id="tabCompare" class="active" type="button">Ver todas las plantillas</button><button id="tabAI" type="button">Asistente GPT · 6 propuestas</button><button id="tabBuild" type="button">Crear una nueva</button></div></div></div>
+<main><div class="share-panel"><label class="field"><span>Campaña que vamos a comparar</span><select id="campaignChoice"><option value="bella">Sala Bella Bestia · eventos de empresa</option><option value="neon">Noches de Neón · contratación de la banda</option></select></label><button id="showBellaPrototype" class="btn-secondary" type="button">Ver los 6 prototipos Bella Bestia</button><p id="campaignNote" class="status"></p></div>
 <section id="aiPanel" class="hidden">
   <div class="section-heading"><div><h2>Cuéntanos qué quieres proponer</h2><p>Texto, fotos, documentos o una nota de voz. El asistente prepara seis formas distintas de contarlo.</p></div></div>
   <div class="panel" style="max-width:980px;margin:auto">
@@ -30,18 +30,27 @@
       <p id="keyHelp" class="status">Primero conecta el servidor y accede con la contraseña de la oficina.</p>
       <form id="openaiKeyForm" autocomplete="off">
         <label class="field" style="margin-top:14px"><span>Clave API de GPT de Artes Búho</span><input id="openaiKey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false" disabled><small>Se envía a este servidor y a OpenAI para comprobar el acceso. No se añade al HTML ni se guarda en tu navegador.</small></label>
-        <label class="field"><span>Modelo GPT</span><input id="openaiModel" value="gpt-4.1" maxlength="100" spellcheck="false" disabled></label>
+        <label class="field"><span>Modelo para comprobar la clave</span><select id="openaiModel" disabled><option value="gpt-5.6-sol">GPT 5.6 Sol</option><option value="gpt-6-sol">GPT 6 Sol</option><option value="gpt-6-astra">GPT 6 Astra</option><option value="gpt-6.1-sol">GPT 6.1 Sol</option></select></label>
         <button id="saveOpenaiKey" class="btn-secondary" disabled>Guardar y comprobar conexión</button>
       </form>
       <p id="keyStatus" class="status" role="status" aria-live="polite"></p>
     </details>
     <form id="aiForm">
+      <label class="field"><span>Modelo para esta tanda · mínimo GPT 5.6</span><select id="generationModel"><option value="gpt-5.6-sol">GPT 5.6 Sol</option><option value="gpt-6-sol">GPT 6 Sol</option><option value="gpt-6-astra">GPT 6 Astra</option><option value="gpt-6.1-sol">GPT 6.1 Sol</option></select><small>Se usa exactamente el modelo elegido. Si tu cuenta no tiene acceso, se mostrará el error; no se sustituye por uno inferior.</small></label>
+      <details open style="margin-bottom:24px"><summary style="font-weight:bold;cursor:pointer">Vídeos de la campaña · enlaces y rótulos editables</summary>
+        <label class="field" style="margin-top:16px"><span>Enlace del vídeo 1</span><input id="campaignVideo1" type="url" placeholder="https://www.youtube.com/watch?v=…"></label>
+        <label class="field"><span>Rótulo del vídeo 1</span><input id="campaignLabel1" maxlength="140"></label>
+        <label class="field"><span>Enlace del vídeo 2</span><input id="campaignVideo2" type="url" placeholder="https://www.youtube.com/watch?v=…"></label>
+        <label class="field"><span>Rótulo del vídeo 2</span><input id="campaignLabel2" maxlength="140"></label>
+        <button id="updateVideoPreviews" type="button" class="btn-secondary">Actualizar miniaturas y prototipo</button><p id="videoStatus" class="status"></p>
+        <div id="campaignVideoPreviews" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px"></div>
+      </details>
       <label class="field"><span>Información de la propuesta</span><textarea id="aiBrief" style="min-height:170px">Noches de Neón: banda de versiones y orquesta 100 % en directo. Hasta cuatro horas de repertorio. Ocho artistas: cuatro cantantes bailarines, piano, guitarra, bajo y batería. Músicos que han tocado con Antonio Orozco, Rozalén y La Pegatina. Sonido, iluminación y montaje o camión escenario opcionales. Podemos adaptarnos a los medios del evento. Queremos presentarnos a responsables de fiestas municipales para que nos cuenten fecha y lugar.</textarea></label>
       <label class="field"><span>¿A quién va dirigido?</span><select id="aiAudience"><option value="municipal">Ayuntamientos y fiestas municipales</option><option value="empresa">Empresas</option><option value="bodas">Bodas</option><option value="mixto">Otros eventos</option></select></label>
       <label class="field"><span>Carácter, saludo y cambios que quieres</span><textarea id="aiInstructions" placeholder="Ej.: humano, como si lo hubiera escrito personalmente; con saludo sencillo, atrevido sin exagerar. Quiero menos texto y dos vídeos."></textarea></label>
       <label class="field"><span>Adjuntos de referencia</span><input type="file" id="aiFiles" multiple accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,.md,.docx,.pptx,.csv,.xlsx,.mp3,.mp4,.m4a,.wav,.webm"><small>Hasta 8 archivos, 12 MB por archivo y 16 MB en total. Las imágenes pueden elegirse como portada. El audio y los vídeos con voz se transcriben; no se analizan sus fotogramas.</small></label>
       <p id="fileSummary" class="status"></p>
-      <p class="sub">Al generar, el texto y los adjuntos se envían a OpenAI con la cuenta API de Artes Búho. Cada tanda crea seis enfoques: visual, solvencia, cercano, juguetón, caso concreto y producción fácil. Después podéis revisar y elegir.</p>
+      <p class="sub">Al generar, el texto y los adjuntos se envían a OpenAI con la cuenta API de Artes Búho. Cada tanda crea seis enfoques distintos para la campaña elegida. Los enlaces de vídeo aportan miniaturas y botones; no se analiza su contenido automáticamente.</p>
       <div class="button-row"><button id="generateSix" class="btn-primary" disabled>Generar las 6 plantillas</button><button id="logoutOffice" class="btn-secondary hidden" type="button">Cerrar sesión</button></div>
     </form>
     <p id="aiProgress" class="status" role="status" aria-live="polite"></p>
@@ -52,7 +61,7 @@
 
   <section class="comparison active" id="comparison">
     <div class="share-panel"><h2>Un enlace para decidir juntos</h2><p>Recorre las seis propuestas completas. Cada una explica su intención. Puedes descargar el comparador o copiar el enlace para enviarlo a la oficina.</p><div class="button-row"><button class="btn-primary" id="copyLink" type="button">Copiar enlace</button><button class="btn-secondary" id="downloadApp" type="button">Descargar las propuestas juntas</button></div><p id="linkStatus" class="status"></p></div>
-    <div class="section-heading"><div><h2>Seis enfoques para ayuntamientos</h2><p>Primero, una guía rápida. Debajo encontrarás cada correo completo, uno tras otro, para leerlos haciendo scroll.</p></div></div>
+    <div class="section-heading"><div><h2>Seis enfoques para elegir en la oficina</h2><p>Primero, una guía rápida. Debajo encontrarás cada correo completo, uno tras otro, para leerlos haciendo scroll.</p></div></div>
     <div class="cards" id="cards"></div>
     <div class="review-list" id="gallery"></div>
     <div class="feedback"><h3>¿Con cuál nos quedamos?</h3><p>Marca una favorita y, si quieres, escribe qué cambiarías. Copia tu opinión y envíasela a David por WhatsApp.</p><label class="field"><span>Tu nombre, para la revisión compartida</span><input id="reviewerName" maxlength="80" autocomplete="name"></label><textarea id="feedbackNotes" placeholder="Ej.: Me quedo con la 4, pero acortaría el segundo párrafo."></textarea><div class="button-row"><button type="button" class="btn-primary" id="sendReview">Guardar opinión en la oficina</button><button type="button" class="btn-secondary" id="copyFeedback">Copiar mi opinión</button></div><p class="status" id="feedbackStatus"></p><div id="teamReviews"></div><textarea id="feedbackOutput" class="feedback-output" readonly aria-label="Texto de la opinión para copiar"></textarea></div>
@@ -162,8 +171,8 @@ function build(f){
   const accent=/juguet|atrevid|divertid/i.test(f.character)?'#d85591':'#237ed0';
   const municipal=f.audience==='municipal';
   const intro=`<p style="margin:0 0 9px;color:${accent};font-size:12px;font-weight:800;letter-spacing:2px">NOCHES DE NEÓN · MÚSICA EN DIRECTO</p><h1 style="margin:0 0 18px;color:#0c2344;font-size:32px;line-height:1.15">${esc(f.headline)}</h1>${block(f.greeting)}${block(f.opening)}`;
-  const mainVideo=video('https://www.youtube.com/watch?v=5VXRMy4IaCQ',f.hero?(f.heroData||assets[f.hero]||assets.festival):'','Dale al play: la banda en Carabanchel 2026',accent);
-  const publicVideo=video('https://www.youtube.com/watch?v=cPYKNmWQQ9w',f.thumbs?assets.video2:'','Y así lo vive el público',accent);
+  const mainVideo=f.videos? (f.videos[0]?videoTile(f.videos[0]):''):video('https://www.youtube.com/watch?v=5VXRMy4IaCQ',f.hero?(f.heroData||assets[f.hero]||assets.festival):'','Dale al play: la banda en Carabanchel 2026',accent);
+  const publicVideo=f.videos? (f.videos[1]?videoTile(f.videos[1]):''):video('https://www.youtube.com/watch?v=cPYKNmWQQ9w',f.thumbs?assets.video2:'','Y así lo vive el público',accent);
   const facts=block(f.offer)+block(f.proof)+block(f.logistics);
   const order=f.structure==='visual'?[intro,mainVideo,publicVideo,facts]:f.structure==='prueba'?[intro,mainVideo,block(f.proof),publicVideo,block(f.offer)+block(f.logistics)]:[intro,mainVideo,facts,publicVideo];
   const content=order.map(x=>`<tr><td style="padding:0 32px 18px">${x}</td></tr>`).join('');
@@ -176,6 +185,6 @@ $('municipalPreset').onclick=()=>{$('audience').value='municipal';$('character')
 for(const item of savedDrafts){if(!item.fields)continue;const f=item.fields;versions.push({id:item.id,name:f.name||'Versión propia',hook:f.headline||'',intent:'Versión creada desde la app.',implication:'Texto y formulación definidos en el formulario.',html:build(f),filename:fileName(f.name)})}
 renderCards();renderGallery();propose();
 </script>
-<script src="client-ai.js"></script>
+<script src="client-ai.js"></script><script src="campaigns.js"></script>
 </body>
 </html>

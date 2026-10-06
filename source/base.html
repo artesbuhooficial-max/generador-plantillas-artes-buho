@@ -131,8 +131,8 @@ function build(f){
   const accent=/juguet|atrevid|divertid/i.test(f.character)?'#d85591':'#237ed0';
   const municipal=f.audience==='municipal';
   const intro=`<p style="margin:0 0 9px;color:${accent};font-size:12px;font-weight:800;letter-spacing:2px">NOCHES DE NEÓN · MÚSICA EN DIRECTO</p><h1 style="margin:0 0 18px;color:#0c2344;font-size:32px;line-height:1.15">${esc(f.headline)}</h1>${block(f.greeting)}${block(f.opening)}`;
-  const mainVideo=video('https://www.youtube.com/watch?v=5VXRMy4IaCQ',f.hero?(assets[f.hero]||assets.festival):'','Dale al play: la banda en Carabanchel 2026',accent);
-  const publicVideo=video('https://www.youtube.com/watch?v=cPYKNmWQQ9w',f.thumbs?assets.video2:'','Y así lo vive el público',accent);
+  const mainVideo=f.videos? (f.videos[0]?videoTile(f.videos[0]):''):video('https://www.youtube.com/watch?v=5VXRMy4IaCQ',f.hero?(assets[f.hero]||assets.festival):'','Dale al play: la banda en Carabanchel 2026',accent);
+  const publicVideo=f.videos? (f.videos[1]?videoTile(f.videos[1]):''):video('https://www.youtube.com/watch?v=cPYKNmWQQ9w',f.thumbs?assets.video2:'','Y así lo vive el público',accent);
   const facts=block(f.offer)+block(f.proof)+block(f.logistics);
   const order=f.structure==='visual'?[intro,mainVideo,publicVideo,facts]:f.structure==='prueba'?[intro,mainVideo,block(f.proof),publicVideo,block(f.offer)+block(f.logistics)]:[intro,mainVideo,facts,publicVideo];
   const content=order.map(x=>`<tr><td style="padding:0 32px 18px">${x}</td></tr>`).join('');
