@@ -25,6 +25,16 @@
   <div class="panel" style="max-width:980px;margin:auto">
     <p id="apiStatus" class="note" role="status">Comprobando el asistente…</p>
     <form id="loginForm" class="hidden"><label class="field"><span>Contraseña de la oficina</span><input id="officePassword" type="password" autocomplete="current-password"></label><button class="btn-primary">Acceder</button></form>
+    <details id="openaiSettings" style="margin:20px 0;padding:18px;background:#f1f5f8;border-radius:18px" open>
+      <summary style="cursor:pointer;font-weight:800">Conexión GPT · colocar la clave API</summary>
+      <p id="keyHelp" class="status">Primero conecta el servidor y accede con la contraseña de la oficina.</p>
+      <form id="openaiKeyForm" autocomplete="off">
+        <label class="field" style="margin-top:14px"><span>Clave API de GPT de Artes Búho</span><input id="openaiKey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false" disabled><small>Se envía a este servidor y a OpenAI para comprobar el acceso. No se añade al HTML ni se guarda en tu navegador.</small></label>
+        <label class="field"><span>Modelo GPT</span><input id="openaiModel" value="gpt-4.1" maxlength="100" spellcheck="false" disabled></label>
+        <button id="saveOpenaiKey" class="btn-secondary" disabled>Guardar y comprobar conexión</button>
+      </form>
+      <p id="keyStatus" class="status" role="status" aria-live="polite"></p>
+    </details>
     <form id="aiForm">
       <label class="field"><span>Información de la propuesta</span><textarea id="aiBrief" style="min-height:170px">Noches de Neón: banda de versiones y orquesta 100 % en directo. Hasta cuatro horas de repertorio. Ocho artistas: cuatro cantantes bailarines, piano, guitarra, bajo y batería. Músicos que han tocado con Antonio Orozco, Rozalén y La Pegatina. Sonido, iluminación y montaje o camión escenario opcionales. Podemos adaptarnos a los medios del evento. Queremos presentarnos a responsables de fiestas municipales para que nos cuenten fecha y lugar.</textarea></label>
       <label class="field"><span>¿A quién va dirigido?</span><select id="aiAudience"><option value="municipal">Ayuntamientos y fiestas municipales</option><option value="empresa">Empresas</option><option value="bodas">Bodas</option><option value="mixto">Otros eventos</option></select></label>

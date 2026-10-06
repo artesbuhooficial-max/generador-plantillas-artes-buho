@@ -30,6 +30,8 @@ Los correos de partida conservan logos, dos miniaturas de vídeo y datos de Noch
 3. Ejecutar `npm start`; abrir http://localhost:3000.
 4. Acceder desde «Asistente GPT · 6 propuestas». Adjuntar la información y pulsar «Generar las 6 plantillas».
 
+También se puede colocar la clave en **Asistente GPT → Conexión GPT → Clave API de GPT de Artes Búho**, tras acceder a la versión con servidor. «Guardar y comprobar conexión» comprueba el acceso al modelo en OpenAI y guarda la clave en `data/openai-private.json`, fuera del HTML público y excluido de Git. No muestra ni devuelve la clave guardada. En producción se necesita HTTPS. El campo está desactivado en GitHub Pages. La clave guardada desde el formulario tiene prioridad sobre `OPENAI_API_KEY`; el modelo seleccionado debe admitir visión y salidas estructuradas. La comprobación de acceso no confirma saldo ni sustituye una prueba real de generación.
+
 Sin clave se pueden revisar las seis propuestas iniciales y editar borradores con el motor local. No se sustituye GPT por una simulación.
 
 ## Despliegue en Coolify

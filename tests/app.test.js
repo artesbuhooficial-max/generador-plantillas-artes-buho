@@ -36,3 +36,21 @@ test('Una llamada lee imagen, PDF y audio y devuelve seis campos seguros',async(
   const request=calls.find(x=>x.route==='responses').body;assert.equal(request.store,false);assert.equal(request.text.format.strict,true);assert.equal(request.text.format.schema.properties.templates.minItems,6);
   const content=request.input[0].content;assert.ok(content.some(x=>x.type==='input_image'));assert.ok(content.some(x=>x.type==='input_file'));assert.ok(content.some(x=>x.type==='input_text'&&x.text.includes('Cambiad el saludo')));
 });
+test('El formulario comprueba y guarda la clave sólo en el servidor autenticado',async()=>{
+  const key='sk-'+'mockTestOnly'.repeat(5);
+  assert.equal((await post('/api/settings/openai',{key,model:'gpt-4.1'})).status,401);
+  const login=await post('/api/login',{password:'test-password-only'});const cookie=login.headers.get('set-cookie');
+  assert.equal((await post('/api/settings/openai',{key:'no-key',model:'gpt-4.1'},cookie)).status,400);
+  const nativeFetch=globalThis.fetch;
+  globalThis.fetch=async(url,options)=>String(url).startsWith('https://api.openai.com/')?new Response(JSON.stringify({id:'gpt-4.1'}),{status:200,headers:{'Content-Type':'application/json'}}):nativeFetch(url,options);
+  try{
+    const result=await post('/api/settings/openai',{key,model:'gpt-4.1'},cookie);assert.equal(result.status,200);assert.ok(!(await result.text()).includes(key));
+    const status=await (await fetch(base+'/api/session',{headers:{Cookie:cookie}})).json();assert.equal(status.aiReady,true);assert.ok(!JSON.stringify(status).includes(key));
+    assert.equal(JSON.parse(await fs.readFile(path.join(dir,'openai-private.json'),'utf8')).key,key);
+    assert.equal((await fetch(base+'/data/openai-private.json')).status,400);
+    assert.ok(!(await (await fetch(base+'/')).text()).includes(key));
+    globalThis.fetch=async(url,options)=>String(url).startsWith('https://api.openai.com/')?new Response('{}',{status:401}):nativeFetch(url,options);
+    assert.equal((await post('/api/settings/openai',{key:'sk-'+'invalidMockOnly'.repeat(4),model:'gpt-4.1'},cookie)).status,400);
+    assert.equal(JSON.parse(await fs.readFile(path.join(dir,'openai-private.json'),'utf8')).key,key);
+  }finally{globalThis.fetch=nativeFetch;}
+});

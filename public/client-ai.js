@@ -1,4 +1,4 @@
-// La clave de OpenAI nunca se solicita, almacena ni envía desde el navegador.
+// La clave se envía sólo al servidor autenticado. No se guarda en HTML ni localStorage.
 let officeSession=null, currentBatch='initial';
 const initialVersions=versions.filter(v=>['original','banda','cercano','jugueton','directo','produccion'].includes(v.id));
 async function api(route,body){
@@ -31,11 +31,24 @@ function applyBatch(batch){
 async function loadBatch(id){try{applyBatch(await api('batches/'+encodeURIComponent(id)));}catch(e){$('apiStatus').textContent=e.message;show('ai');}}
 async function checkSession(){
   try{officeSession=await api('session');$('loginForm').classList.toggle('hidden',officeSession.authenticated||!officeSession.configured);$('logoutOffice').classList.toggle('hidden',!officeSession.authenticated);$('generateSix').disabled=!officeSession.aiReady;
-    $('apiStatus').textContent=!officeSession.configured?'El servidor necesita una contraseña para la oficina.':!officeSession.authenticated?'Accede para generar propuestas y guardar opiniones compartidas.':!officeSession.aiReady?'Acceso correcto. La conexión GPT está pendiente de configurar OPENAI_API_KEY en el servidor.':'Asistente conectado · '+officeSession.model+' · seis propuestas por tanda.';
+    $('apiStatus').textContent=!officeSession.configured?'El servidor necesita una contraseña para la oficina.':!officeSession.authenticated?'Accede para generar propuestas y guardar opiniones compartidas.':!officeSession.aiReady?'Acceso correcto. Coloca la clave API en «Conexión GPT» para activar el asistente.':'Asistente conectado · '+officeSession.model+' · seis propuestas por tanda.';
+    const canConfigure=officeSession.authenticated&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname));
+    for(const id of ['openaiKey','openaiModel','saveOpenaiKey'])$(id).disabled=!canConfigure;
+    $('openaiKey').value='';
+    if(officeSession.model)$('openaiModel').value=officeSession.model;
+    $('keyHelp').textContent=canConfigure?(officeSession.aiReady?'Ya hay una clave configurada. Puedes sustituirla aquí; nunca se mostrará la clave guardada.':'Pega la clave y pulsa «Guardar y comprobar conexión». Quedará sólo en el servidor.'):!officeSession.authenticated?'Accede con la contraseña de la oficina para colocar la clave.':'Necesitas abrir esta aplicación mediante HTTPS para colocar la clave.';
     $('sendReview').disabled=!officeSession.authenticated;
     if(officeSession.authenticated){await loadBatches();const id=new URL(location.href).searchParams.get('batch');if(id)await loadBatch(id);}
-  }catch(e){officeSession=null;$('apiStatus').textContent='Modo revisión: las seis plantillas ya están disponibles. GPT y las opiniones compartidas se activarán cuando se conecte el servidor de Artes Búho.';$('sendReview').disabled=true;$('generateSix').disabled=true;$('feedbackStatus').textContent='Puedes copiar tu opinión y enviarla por WhatsApp. Este enlace aún no guarda opiniones compartidas.';}
+  }catch(e){officeSession=null;$('apiStatus').textContent='Modo revisión: las seis plantillas ya están disponibles. GPT y las opiniones compartidas se activarán cuando se conecte el servidor de Artes Búho.';$('sendReview').disabled=true;$('generateSix').disabled=true;for(const id of ['openaiKey','openaiModel','saveOpenaiKey'])$(id).disabled=true;$('openaiKey').value='';$('keyHelp').textContent='Este enlace de GitHub permite revisar plantillas. El campo de clave se activará en la versión conectada al servidor, después de acceder. No pegues la clave en el HTML.';$('feedbackStatus').textContent='Puedes copiar tu opinión y enviarla por WhatsApp. Este enlace aún no guarda opiniones compartidas.';}
 }
+$('openaiKeyForm').onsubmit=async e=>{
+  e.preventDefault();const input=$('openaiKey'),button=$('saveOpenaiKey');
+  if(!officeSession?.authenticated)return;
+  button.disabled=true;$('keyStatus').textContent='Comprobando acceso a OpenAI…';
+  try{const key=input.value.trim();input.value='';const result=await api('settings/openai',{key,model:F('openaiModel')});$('keyStatus').textContent=result.message+' Ya puedes generar las seis propuestas.';await checkSession();}
+  catch(error){$('keyStatus').textContent=error.message;}
+  finally{input.value='';button.disabled=!officeSession?.authenticated;}
+};
 $('loginForm').onsubmit=async e=>{e.preventDefault();try{await api('login',{password:$('officePassword').value});$('officePassword').value='';await checkSession();}catch(error){$('apiStatus').textContent=error.message;}};
 $('logoutOffice').onclick=async()=>{try{await api('logout',{});currentBatch='initial';versions.splice(0,versions.length,...initialVersions);renderCards();renderGallery();reviewsView([]);history.replaceState({},'',location.pathname);await checkSession();}catch(e){$('apiStatus').textContent=e.message;}};
 $('aiFiles').onchange=()=>{$('fileSummary').textContent=[...$('aiFiles').files].map(f=>f.name+' ('+(f.size/1024/1024).toFixed(1)+' MB)').join(' · ');};
