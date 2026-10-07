@@ -4,8 +4,9 @@
     <p id="apiStatus" class="note" role="status">Comprobando el asistente…</p>
     <form id="loginForm" class="hidden"><label class="field"><span>Contraseña de la oficina</span><input id="officePassword" type="password" autocomplete="current-password"></label><button class="btn-primary">Acceder</button></form>
     <details id="openaiSettings" style="margin:20px 0;padding:18px;background:#f1f5f8;border-radius:18px" open>
-      <summary style="cursor:pointer;font-weight:800">Conexión GPT · colocar la clave API</summary>
+      <summary id="connectionSummary" style="cursor:pointer;font-weight:800">Conexión GPT</summary>
       <p id="keyHelp" class="status">Primero conecta el servidor y accede con la contraseña de la oficina.</p>
+      <button id="replaceOpenaiKey" class="small-btn hidden" type="button">Cambiar la clave guardada</button>
       <form id="openaiKeyForm" autocomplete="off">
         <label class="field" style="margin-top:14px"><span>Clave API de GPT de Artes Búho</span><input id="openaiKey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false" disabled><small>Se envía a este servidor y a OpenAI para comprobar el acceso. No se añade al HTML ni se guarda en tu navegador.</small></label>
         <label class="field"><span>Modelo para comprobar la clave</span><select id="openaiModel" disabled><option value="gpt-5.6-sol">GPT 5.6 Sol</option><option value="gpt-6-sol">GPT 6 Sol</option><option value="gpt-6-astra">GPT 6 Astra</option><option value="gpt-6.1-sol">GPT 6.1 Sol</option></select></label>

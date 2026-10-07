@@ -43,8 +43,13 @@ async function checkSession(){
     const canConfigure=officeSession.authenticated&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname));
     for(const id of ['openaiKey','openaiModel','saveOpenaiKey'])$(id).disabled=!canConfigure;
     $('openaiKey').value='';
+    const keySaved=officeSession.authenticated&&officeSession.aiReady;
+    $('connectionSummary').textContent=keySaved?'Conexión GPT · clave guardada':'Conexión GPT';
+    $('openaiKeyForm').classList.toggle('hidden',keySaved||!canConfigure);
+    $('replaceOpenaiKey').classList.toggle('hidden',!keySaved||!canConfigure);
+    $('openaiKey').placeholder=keySaved?'Nueva clave, sólo si quieres sustituir la guardada':'sk-…';
     if(officeSession.model&&[...$('openaiModel').options].some(o=>o.value===officeSession.model))$('openaiModel').value=officeSession.model;
-    $('keyHelp').textContent=canConfigure?(officeSession.aiReady?'Ya hay una clave configurada. Puedes sustituirla aquí; nunca se mostrará la clave guardada.':'Pega la clave y pulsa «Guardar y comprobar conexión». Quedará sólo en el servidor.'):!officeSession.authenticated?'Accede con la contraseña de la oficina para colocar la clave.':'Necesitas abrir esta aplicación mediante HTTPS para colocar la clave.';
+    $('keyHelp').textContent=canConfigure?(officeSession.aiReady?'✓ Tu clave API está guardada en el servidor. No necesitas introducirla otra vez. Puedes generar directamente; la clave nunca se muestra.':'No hay una clave API configurada. Pégala una vez y pulsa «Guardar y comprobar conexión». Quedará en el servidor.'):!officeSession.authenticated?'Accede con la contraseña de la oficina para comprobar la conexión guardada. No necesitas volver a introducir la clave si ya la guardaste.':'Necesitas abrir esta aplicación mediante HTTPS para colocar la clave.';
     $('sendReview').disabled=!officeSession.authenticated;
     if(officeSession.authenticated){await loadBatches();const id=new URL(location.href).searchParams.get('batch');if(id&&id!=='bella-prototype')await loadBatch(id);else if(currentBatch==='bella-prototype')reviewsView((await api('batches/bella-prototype')).reviews);}
   }catch(e){officeSession=null;$('apiStatus').textContent='Modo revisión: las seis plantillas ya están disponibles. GPT y las opiniones compartidas se activarán cuando se conecte el servidor de Artes Búho.';$('sendReview').disabled=true;$('generateSix').disabled=true;for(const id of ['openaiKey','openaiModel','saveOpenaiKey'])$(id).disabled=true;$('openaiKey').value='';$('keyHelp').textContent='Este enlace de GitHub permite revisar plantillas. El campo de clave se activará en la versión conectada al servidor, después de acceder. No pegues la clave en el HTML.';$('feedbackStatus').textContent='Puedes copiar tu opinión y enviarla por WhatsApp. Este enlace aún no guarda opiniones compartidas.';}
@@ -57,6 +62,7 @@ $('openaiKeyForm').onsubmit=async e=>{
   catch(error){$('keyStatus').textContent=error.message;}
   finally{input.value='';button.disabled=!officeSession?.authenticated;}
 };
+$('replaceOpenaiKey').onclick=()=>{$('openaiKeyForm').classList.remove('hidden');$('replaceOpenaiKey').classList.add('hidden');$('keyHelp').textContent='La clave guardada sigue activa. Introduce otra sólo para sustituirla; cerrar esta pantalla no elimina la actual.';$('openaiKey').focus();};
 $('loginForm').onsubmit=async e=>{e.preventDefault();try{await api('login',{password:$('officePassword').value});$('officePassword').value='';await checkSession();}catch(error){$('apiStatus').textContent=error.message;}};
 $('logoutOffice').onclick=async()=>{try{await api('logout',{});setCampaign(activeCampaign);reviewsView([]);await checkSession();}catch(e){$('apiStatus').textContent=e.message;}};
 $('aiFiles').onchange=()=>{$('fileSummary').textContent=[...$('aiFiles').files].map(f=>f.name+' ('+(f.size/1024/1024).toFixed(1)+' MB)').join(' · ');};
