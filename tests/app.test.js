@@ -50,9 +50,18 @@ test('Los seis prototipos Bella enlazan los vídeos editados sin contenido de la
   const source=await fs.readFile(new URL('../campaigns.js',import.meta.url),'utf8');
   const fields={campaignVideo1:'https://youtu.be/PQgfKgna6tI',campaignLabel1:'Nuestra sala <hoy>',campaignVideo2:'https://www.youtube.com/watch?v=x8sKyjw4UBM',campaignLabel2:'Otra mirada'};
   const escape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
-  const context=vm.createContext({URL,Map,build:()=>'',F:id=>fields[id],esc:escape,text:escape});
+  const context=vm.createContext({URL,Map,assets:{brand:'data:image/png;base64,YnJhbmQ='},build:()=>'',F:id=>fields[id],esc:escape,text:escape});
   vm.runInContext(source.slice(0,source.indexOf('function setCampaign')),context);
   const variants=vm.runInContext('bellaPrototypes()',context);assert.equal(variants.length,6);
+  const elements=await fs.readFile(new URL('../template-elements.js',import.meta.url),'utf8');
+  vm.runInContext(elements.slice(elements.indexOf('function renderTemplateElements'),elements.indexOf('const elementBaseBuild')),context);
+  context.sample=variants[0].html;
+  const withLogo=vm.runInContext("renderTemplateElements(sample,{logo:'data:image/png;base64,bG9nbw==',logoPosition:'right'},'bella')",context);
+  const header=withLogo.match(/<tr data-template-header="bella">[\s\S]*?<\/table><\/td><\/tr>/)[0];
+  assert.match(header,/background:#271d2e/);assert.match(header,/alt="Artes Búho"/);assert.match(header,/alt="Logo de la empresa"/);
+  assert.equal((header.match(/height="66"/g)||[]).length,2);
+  assert.ok(header.indexOf('alt="Artes Búho"')<header.indexOf('alt="Logo de la empresa"'));
+  assert.equal((withLogo.match(/alt="Logo de la empresa"/g)||[]).length,1);
   assert.equal(new Set(variants.map(v=>v.hook)).size,6);
   for(const v of variants){assert.match(v.html,/PQgfKgna6tI/);assert.match(v.html,/x8sKyjw4UBM/);assert.match(v.html,/Nuestra sala &lt;hoy&gt;/);assert.match(v.html,/salabellabestia@gmail.com/);assert.doesNotMatch(v.html,/Noches de Neón|Carabanchel|Orozco|Arganzuela/);}
   assert.match(vm.runInContext("videoTile({id:'PQgfKgna6tI',url:'https://youtu.be/PQgfKgna6tI',src:'data:image/jpeg;base64,YWJj',label:'Ver'})",context),/data:image\/jpeg;base64,YWJj/);
