@@ -1,0 +1,17 @@
+let uploadedTemplateLogo='';
+function readTemplateLayout(){return {logo:uploadedTemplateLogo,logoPosition:F('logoPosition'),unsubscribe:$('includeUnsubscribe').checked,unsubscribeURL:F('unsubscribeURL'),unsubscribeLabel:F('unsubscribeLabel')||'Darme de baja'};}
+function restoreTemplateLayout(layout){uploadedTemplateLogo=layout.logo||'';$('logoPosition').value=layout.logoPosition||'right';$('includeUnsubscribe').checked=!!layout.unsubscribe;$('unsubscribeURL').value=layout.unsubscribeURL||'';$('unsubscribeLabel').value=layout.unsubscribeLabel||'Darme de baja';renderLogoPreview();}
+function renderLogoPreview(){$('logoPreview').innerHTML=uploadedTemplateLogo?`<img alt="Logo de cabecera" src="${esc(uploadedTemplateLogo)}" style="max-width:160px;max-height:100px;object-fit:contain;background:white;padding:10px">`:'';}
+function renderTemplateElements(html,layout,campaign){
+ if(!layout)return html;
+ if(layout.logo){const align=['left','center','right'].includes(layout.logoPosition)?layout.logoPosition:'right';const row=`<tr><td align="${align}" style="padding:16px 24px;background:white"><img src="${esc(layout.logo)}" width="120" alt="Logo de la empresa" style="display:block;width:120px;max-width:100%;height:auto;border:0"></td></tr>`;html=html.replace(/(max-width:600px[^>]*>)/, '$1'+row);}
+ if(layout.unsubscribe){const email=campaign==='bella'?'salabellabestia@gmail.com':'contratacion@artesbuho.com';const href=layout.unsubscribeURL||'mailto:'+email+'?subject=Solicitud%20de%20baja';const row=`<tr><td align="center" style="padding:24px;background:#f5f5f5"><a href="${esc(href)}" style="display:inline-block;border:1px solid #777;border-radius:999px;padding:10px 18px;color:#444;font-size:13px;text-decoration:none">${esc(layout.unsubscribeLabel||'Darme de baja')}</a>${layout.unsubscribeURL?'':'<p style="font-size:11px;color:#666">Abre un correo para solicitar la baja.</p>'}</td></tr>`;html=html.replace('</table></td></tr></table></body>',row+'</table></td></tr></table></body>');}
+ return html;
+}
+const elementBaseBuild=build;
+build=f=>renderTemplateElements(elementBaseBuild(f),f.layout,f.campaign||'neon');
+const elementCollect=collect;
+collect=()=>({...elementCollect(),layout:readTemplateLayout()});
+$('templateLogo').onchange=async()=>{try{const file=$('templateLogo').files[0];if(!file)return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2*1024*1024)throw new Error('Usa PNG, JPG o WebP de hasta 2 MB.');const data=await fileToBase64(file);uploadedTemplateLogo='data:'+file.type+';base64,'+data;renderLogoPreview();$('elementStatus').textContent='Logo listo para incrustar en la cabecera. Pulsa Aplicar o genera una tanda nueva.';}catch(e){$('elementStatus').textContent=e.message;}};
+$('removeTemplateLogo').onclick=()=>{uploadedTemplateLogo='';$('templateLogo').value='';renderLogoPreview();};
+$('applyTemplateElements').onclick=()=>{const layout=readTemplateLayout();for(const v of versions){if(v.fields){v.fields.layout=layout;v.html=build(v.fields);}else{v.elementOriginalHTML??=v.html;v.html=renderTemplateElements(v.elementOriginalHTML,layout,activeCampaign);}}renderCards();renderGallery();renderDraft();$('elementStatus').textContent='Logo y botón aplicados a las propuestas actuales. '+(layout.unsubscribe&&!layout.unsubscribeURL?'La baja se solicita por correo y debes gestionarla manualmente.':'Puedes comparar y descargar el HTML.');};

@@ -21,9 +21,10 @@ async function loadBatches(){const data=await api('batches');const box=$('batchL
 function applyBatch(batch){
   currentBatch=batch.id;const imageMap=new Map((batch.images||[]).map(x=>[x.index,x.src]));
   const items=batch.templates.map((t,i)=>{
-    const fields={...t,campaign:batch.campaign||'neon',videos:batch.videos,audience:batch.audience,character:i===3?'juguetón':'personal',hero:'festival',heroData:imageMap.get(t.heroImage)||'',thumbs:true};
+    const fields={...t,layout:batch.layout,campaign:batch.campaign||'neon',videos:batch.videos,audience:batch.audience,character:i===3?'juguetón':'personal',hero:'festival',heroData:imageMap.get(t.heroImage)||'',thumbs:true};
     return{id:'ai-'+batch.id+'-'+i,name:t.name,hook:t.headline,intent:t.intent,implication:t.implication,html:build(fields),filename:fileName(t.name),fields};
   });
+  restoreTemplateLayout(batch.layout||{});
   activeCampaign=batch.campaign||'neon';$('campaignChoice').value=activeCampaign;
   $('aiBrief').value=batch.brief||(activeCampaign==='bella'?bellaBrief:neonBrief);
   $('aiInstructions').value=batch.instructions||(activeCampaign==='bella'?bellaDirections:'Saludo humano y datos demostrables.');
@@ -66,7 +67,7 @@ $('aiForm').onsubmit=async e=>{
     const files=[...$('aiFiles').files];if(files.length>8||files.some(f=>f.size>12*1024*1024)||files.reduce((n,f)=>n+f.size,0)>16*1024*1024)throw new Error('Máximo 8 archivos, 12 MB cada uno y 16 MB en total.');
     $('aiProgress').textContent='Leyendo los archivos y preparando las seis propuestas. Puede tardar unos minutos…';
     const attachments=await Promise.all(files.map(async f=>({name:f.name,data:await fileToBase64(f)})));
-    const batch=await api('generate',{campaign:activeCampaign,videos:readCampaignVideos(),model:F('generationModel'),brief:F('aiBrief'),instructions:F('aiInstructions'),audience:F('aiAudience'),files:attachments});
+    const batch=await api('generate',{campaign:activeCampaign,videos:readCampaignVideos(),model:F('generationModel'),layout:readTemplateLayout(),brief:F('aiBrief'),instructions:F('aiInstructions'),audience:F('aiAudience'),files:attachments});
     applyBatch(batch);await loadBatches();$('aiProgress').textContent='Las seis propuestas están guardadas. Comparadlas y elegid vuestra favorita.';
   }catch(error){$('aiProgress').textContent=error.message;}finally{button.disabled=!officeSession?.aiReady;}
 };

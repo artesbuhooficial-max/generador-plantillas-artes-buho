@@ -18,6 +18,10 @@ Incluye seis propuestas completas, una debajo de otra, con intención y criterio
 
 ## Asistente multimodal
 
+El campo **Tu prompt: propuesta e instrucciones de la plantilla** admite datos comerciales y órdenes de composición juntos. GPT separa la redacción de los elementos del HTML y devuelve un objeto `layout` para la baja y la posición del logo; las instrucciones de diseño no deben aparecer como párrafos del correo.
+
+En **Logo y botón de baja** se sube un PNG/JPG/WebP de hasta 2 MB, incrustado como data URI, y se elige posición en la cabecera (derecha por defecto). El enlace de baja admite HTTPS, mailto y etiquetas `{{…}}` o `*|…|*` de la plataforma de envío. Sin enlace, el botón solicita la baja por correo al remitente y requiere gestión manual. Aplicar a las propuestas visibles permite revisar estos elementos sin consumir API. Las tandas nuevas guardan su configuración. La compatibilidad de las imágenes data URI debe adaptarse a la plataforma utilizada para enviar correos.
+
 - Texto e indicaciones libres.
 - PNG, JPG, WebP: lectura visual; elección de portada entre las imágenes aportadas.
 - PDF: texto e imágenes; DOCX, PPTX, TXT, Markdown, CSV y XLSX mediante entradas de archivo de la API.

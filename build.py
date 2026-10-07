@@ -24,11 +24,12 @@ page=page.replace('Generador de plantillas HTML para mails · Noches de Neón','
 page=page.replace("frame.setAttribute('scrolling','no');","frame.setAttribute('scrolling','no');frame.setAttribute('sandbox','allow-same-origin allow-popups allow-popups-to-escape-sandbox');",1)
 page=page.replace('assets[f.hero]||assets.festival','f.heroData||assets[f.hero]||assets.festival')
 head,tail=page.rsplit('</body>',1)
-page=head+'<script src="client-ai.js"></script><script src="campaigns.js"></script>\n</body>'+tail
+page=head+'<script src="client-ai.js"></script><script src="campaigns.js"></script><script src="template-elements.js"></script>\n</body>'+tail
 for folder in ['public','docs']:
     dest=root/folder;dest.mkdir(exist_ok=True)
     (dest/'index.html').write_text(page,encoding='utf-8')
     (dest/'client-ai.js').write_text((root/'client-ai.js').read_text(encoding='utf-8'),encoding='utf-8')
     (dest/'campaigns.js').write_text((root/'campaigns.js').read_text(encoding='utf-8'),encoding='utf-8')
+    (dest/'template-elements.js').write_text((root/'template-elements.js').read_text(encoding='utf-8'),encoding='utf-8')
     (dest/'.nojekyll').write_text('')
 print('App empaquetada: seis propuestas; servidor y GitHub Pages.')

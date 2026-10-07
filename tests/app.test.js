@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
-import {validateInput,validateResult,generateProposals} from '../ai.js';
+import {validateInput,validateResult,generateProposals,validateLayout} from '../ai.js';
 const dir=await fs.mkdtemp(path.join(os.tmpdir(),'ab-templates-test-'));
 process.env.DATA_DIR=dir;process.env.APP_ACCESS_PASSWORD='test-password-only';process.env.COOKIE_SECURE='false';delete process.env.OPENAI_API_KEY;
 const {server}=await import('../server.js');await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -35,6 +35,17 @@ test('Bella Bestia conserva vídeos y exige GPT 5.6 o superior',()=>{
   assert.throws(()=>validateInput({...input,model:'gpt-4.1'}));
   assert.throws(()=>validateInput({...input,videos:[{url:'https://evil.example/?v=PQgfKgna6tI'}]}));
 });
+test('El logo incrustado y la baja se convierten en HTML seguro',async()=>{
+  assert.throws(()=>validateLayout({unsubscribeURL:'javascript:alert(1)'}));
+  assert.throws(()=>validateLayout({logo:'data:image/svg+xml;base64,YWJj'}));
+  const layout=validateLayout({logo:'data:image/png;base64,YWJj',logoPosition:'right',unsubscribe:true,unsubscribeURL:'https://example.com/baja',unsubscribeLabel:'Darme de baja'});
+  const source=await fs.readFile(new URL('../template-elements.js',import.meta.url),'utf8');
+  const context=vm.createContext({esc:s=>String(s).replaceAll('"','&quot;')});
+  vm.runInContext(source.slice(source.indexOf('function renderTemplateElements'),source.indexOf('const elementBaseBuild')),context);
+  context.layout=layout;context.html='<table><tr><td><table style="max-width:600px;background:white"><tr><td>Hola</td></tr></table></td></tr></table></body>';
+  const output=vm.runInContext("renderTemplateElements(html,layout,'bella')",context);
+  assert.match(output,/align="right"/);assert.match(output,/data:image\/png;base64,YWJj/);assert.match(output,/href="https:\/\/example.com\/baja"/);assert.match(output,/>Darme de baja<\/a>/);
+});
 test('Los seis prototipos Bella enlazan los vídeos editados sin contenido de la banda',async()=>{
   const source=await fs.readFile(new URL('../campaigns.js',import.meta.url),'utf8');
   const fields={campaignVideo1:'https://youtu.be/PQgfKgna6tI',campaignLabel1:'Nuestra sala <hoy>',campaignVideo2:'https://www.youtube.com/watch?v=x8sKyjw4UBM',campaignLabel2:'Otra mirada'};
@@ -50,8 +61,11 @@ test('Una llamada lee imagen, PDF y audio y devuelve seis campos seguros',async(
   const templates=Array.from({length:6},(_,i)=>Object.fromEntries(['name','subject','headline','greeting','opening','offer','proof','logistics','closing','cta','intent','implication'].map(k=>[k,k+String(i)]).concat([['structure','carta'],['heroImage',0]])));
   const calls=[];const fetcher=async(route,body)=>{calls.push({route,body});return route==='audio/transcriptions'?{text:'Cambiad el saludo'}:{output:[{content:[{type:'output_text',text:JSON.stringify({summary:'Seis propuestas',missing:[],templates})}]}]};};
   const input=validateInput({brief:'Banda real',audience:'municipal',files:[{name:'banda.png',data:'YWJj'},{name:'dossier.pdf',data:'YWJj'},{name:'voz.mp3',data:'YWJj'}]});
-  const result=await generateProposals(input,{key:'mock-only',model:'mock-model',fetcher});assert.equal(result.templates.length,6);
+  input.brief+=' Añade un botón de baja; coloca el logo arriba a la derecha.';
+  input.layout.unsubscribe=true;
+  const result=await generateProposals(input,{key:'mock-only',model:'mock-model',fetcher});assert.equal(result.templates.length,6);assert.equal(result.layout.unsubscribe,true);assert.ok(result.missing.some(x=>x.includes('gestión manual')));
   const request=calls.find(x=>x.route==='responses').body;assert.equal(request.store,false);assert.equal(request.text.format.strict,true);assert.equal(request.text.format.schema.properties.templates.minItems,6);
+  assert.match(request.instructions,/Separa los datos comerciales de las órdenes/);assert.ok(request.text.format.schema.properties.layout);
   const content=request.input[0].content;assert.ok(content.some(x=>x.type==='input_image'));assert.ok(content.some(x=>x.type==='input_file'));assert.ok(content.some(x=>x.type==='input_text'&&x.text.includes('Cambiad el saludo')));
 });
 test('El formulario comprueba y guarda la clave sólo en el servidor autenticado',async()=>{
