@@ -52,7 +52,7 @@
 <fieldset style="border:1px solid #d9e8f3;border-radius:18px;padding:18px;margin:20px 0"><legend>Logo y botón de baja · elementos reales del HTML</legend>
 <label class="field"><span>Subir logo para la cabecera</span><input id="templateLogo" type="file" accept="image/png,image/jpeg,image/webp"><small>PNG, JPG o WebP, hasta 2 MB. Se incrusta en el HTML. No lo adjuntes como foto de portada.</small></label>
 <label class="field"><span>Posición del logo</span><select id="logoPosition"><option value="right">Arriba a la derecha</option><option value="left">Arriba a la izquierda</option><option value="center">Arriba centrado</option></select></label><div id="logoPreview"></div><button id="removeTemplateLogo" class="small-btn" type="button">Quitar logo</button>
-<label class="check"><input id="includeUnsubscribe" type="checkbox">Incluir botón de darse de baja</label>
+<label class="check"><input id="includeUnsubscribe" type="checkbox" checked disabled>Botón de darse de baja obligatorio en todas las plantillas</label>
 <label class="field"><span>Enlace de baja de tu plataforma de envío</span><input id="unsubscribeURL" placeholder="https://… o etiqueta de baja de tu plataforma"><small>Si no tienes enlace, el botón abrirá un correo para solicitar la baja al remitente. Esa solicitud debe gestionarse manualmente; no elimina contactos automáticamente.</small></label>
 <label class="field"><span>Texto del botón de baja</span><input id="unsubscribeLabel" value="Darme de baja" maxlength="80"></label>
 <button id="applyTemplateElements" class="btn-secondary" type="button">Aplicar logo y baja a las 6 propuestas visibles</button><p id="elementStatus" class="status" role="status"></p></fieldset>

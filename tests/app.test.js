@@ -36,6 +36,7 @@ test('Bella Bestia conserva vídeos y exige GPT 5.6 o superior',()=>{
   assert.throws(()=>validateInput({...input,videos:[{url:'https://evil.example/?v=PQgfKgna6tI'}]}));
 });
 test('El logo incrustado y la baja se convierten en HTML seguro',async()=>{
+  assert.equal(validateLayout({unsubscribe:false}).unsubscribe,true);
   assert.throws(()=>validateLayout({unsubscribeURL:'javascript:alert(1)'}));
   assert.throws(()=>validateLayout({logo:'data:image/svg+xml;base64,YWJj'}));
   const layout=validateLayout({logo:'data:image/png;base64,YWJj',logoPosition:'right',unsubscribe:true,unsubscribeURL:'https://example.com/baja',unsubscribeLabel:'Darme de baja'});
@@ -45,6 +46,23 @@ test('El logo incrustado y la baja se convierten en HTML seguro',async()=>{
   context.layout=layout;context.html='<table><tr><td><table style="max-width:600px;background:white"><tr><td>Hola</td></tr></table></td></tr></table></body>';
   const output=vm.runInContext("renderTemplateElements(html,layout,'bella')",context);
   assert.match(output,/align="right"/);assert.match(output,/data:image\/png;base64,YWJj/);assert.match(output,/href="https:\/\/example.com\/baja"/);assert.match(output,/>Darme de baja<\/a>/);
+});
+test('Todas las plantillas antiguas incluyen una sola baja aunque no se configure layout',async()=>{
+  const source=await fs.readFile(new URL('../template-elements.js',import.meta.url),'utf8');
+  const context=vm.createContext({esc:s=>String(s).replaceAll('"','&quot;')});
+  vm.runInContext(source.slice(source.indexOf('function renderTemplateElements'),source.indexOf('const elementBaseBuild')),context);
+  const seed=JSON.parse(await fs.readFile(new URL('../source/seed.json',import.meta.url),'utf8'));
+  for(const value of Object.values(seed).filter(x=>typeof x==='string')){
+    context.html=Buffer.from(value,'base64').toString('utf8');
+    context.output=vm.runInContext("renderTemplateElements(html,undefined,'neon')",context);
+    assert.match(context.output,/href="mailto:contratacion@artesbuho.com\?subject=Solicitud%20de%20baja"/);
+    const twice=vm.runInContext("renderTemplateElements(output,{unsubscribe:false},'neon')",context);
+    assert.equal((twice.match(/>Darme de baja<\/a>/g)||[]).length,1);
+  }
+  context.html='<html><body><p>Correo antiguo sin tablas</p></body></html>';
+  assert.match(vm.runInContext("ensureUnsubscribe(html,{},'bella')",context),/mailto:salabellabestia@gmail.com/);
+  context.html='<html><body><a href="https://example.com/baja">Darme de baja</a></body></html>';
+  assert.equal(vm.runInContext("ensureUnsubscribe(html,{},'neon')",context),context.html);
 });
 test('Los seis prototipos Bella enlazan los vídeos editados sin contenido de la banda',async()=>{
   const source=await fs.readFile(new URL('../campaigns.js',import.meta.url),'utf8');
